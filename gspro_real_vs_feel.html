@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GSPro Putt Adjuster</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 400px;
+      margin: 40px auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, select {
+      width: 100%;
+      padding: 6px;
+      margin-top: 5px;
+    }
+    .result {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .note {
+      font-size: 0.9em;
+      color: #666;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h2>GSPro Putt Adjuster</h2>
+
+  <label for="units">Units:</label>
+  <select id="units">
+    <option value="metric">Metric (m/cm)</option>
+    <option value="imperial">Imperial (ft/in)</option>
+  </select>
+
+  <label id="distanceLabel" for="distance">Putt Distance (m):</label>
+  <input type="number" id="distance" step="0.01" placeholder="e.g. 10">
+
+  <label id="elevationLabel" for="elevation">Elevation Change (cm):</label>
+  <input type="number" id="elevation" step="0.1" placeholder="e.g. -5 for downhill, 5 for uphill">
+
+  <label for="stimp">Green Speed (Stimp):</label>
+  <input type="number" id="stimp" step="0.1" value="12" placeholder="Default is 12">
+
+  <div class="result" id="output"></div>
+  <div class="note" id="unitNote">Uphill = positive cm, Downhill = negative cm.</div>
+
+  <script>
+    const unitSelect = document.getElementById('units');
+    const distanceInput = document.getElementById('distance');
+    const elevationInput = document.getElementById('elevation');
+    const stimpInput = document.getElementById('stimp');
+    const output = document.getElementById('output');
+    const distanceLabel = document.getElementById('distanceLabel');
+    const elevationLabel = document.getElementById('elevationLabel');
+    const unitNote = document.getElementById('unitNote');
+
+    function updateLabels() {
+      if (unitSelect.value === "imperial") {
+        distanceLabel.innerText = "Putt Distance (ft):";
+        elevationLabel.innerText = "Elevation Change (in):";
+        unitNote.innerText = "Uphill = positive in, Downhill = negative in.";
+      } else {
+        distanceLabel.innerText = "Putt Distance (m):";
+        elevationLabel.innerText = "Elevation Change (cm):";
+        unitNote.innerText = "Uphill = positive cm, Downhill = negative cm.";
+      }
+    }
+
+    function updateAdjustedDistance() {
+      const distance = parseFloat(distanceInput.value);
+      const elevation = parseFloat(elevationInput.value);
+      const stimp = parseFloat(stimpInput.value);
+      const units = unitSelect.value;
+
+      if (isNaN(distance) || isNaN(elevation) || isNaN(stimp)) {
+        output.innerText = "";
+        return;
+      }
+
+      let adjusted;
+      if (units === "metric") {
+        const baseMultiplier = 0.12; // meters per cm at Stimp 12
+        const multiplier = baseMultiplier * (stimp / 12);
+        adjusted = distance + (elevation * multiplier);
+        output.innerText = `🎯 Adjusted Distance: ${adjusted.toFixed(2)} meters`;
+      } else {
+        const baseMultiplier = 1; // feet per inch at Stimp 12
+        const multiplier = baseMultiplier * (stimp / 12);
+        adjusted = distance + (elevation * multiplier);
+        output.innerText = `🎯 Adjusted Distance: ${adjusted.toFixed(2)} feet`;
+      }
+    }
+
+    unitSelect.addEventListener('change', () => {
+      updateLabels();
+      updateAdjustedDistance();
+    });
+
+    [distanceInput, elevationInput, stimpInput].forEach(input =>
+      input.addEventListener('input', updateAdjustedDistance)
+    );
+
+    updateLabels(); // Initialize labels
+  </script>
+</body>
+</html>
